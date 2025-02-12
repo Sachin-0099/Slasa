@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import 'remixicon/fonts/remixicon.css';  // Import Remix icons
+import React, { useState, useEffect } from "react";
+import 'remixicon/fonts/remixicon.css';
 
 const navItems = [
   { icon: "🚚", label: "Free Shipping" },
@@ -25,22 +25,41 @@ const countries = [
   { name: "Qatar", flag: "🇶🇦" },
 ];
 
-const languages = [
-  { code: "en", label: "English" },
-  { code: "ar", label: "Arabic" },
-  { code: "fr", label: "French" },
-  { code: "es", label: "Spanish" },
-];
-
 const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState("Saudi Arabia");
-  const [selectedLanguage, setSelectedLanguage] = useState("English");
+  const [selectedCountry, setSelectedCountry] = useState(countries[0]); // Default country
+
+  useEffect(() => {
+    const addGoogleTranslateScript = () => {
+      if (!document.getElementById("google-translate-script")) {
+        const script = document.createElement("script");
+        script.id = "google-translate-script";
+        script.src = "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+        document.body.appendChild(script);
+      }
+    };
+
+    window.googleTranslateElementInit = () => {
+      if (!document.getElementById("google_translate_element").innerHTML) {
+        new window.google.translate.TranslateElement(
+          { pageLanguage: "en", layout: window.google.translate.TranslateElement.InlineLayout.HORIZONTAL },
+          "google_translate_element"
+        );
+      }
+    };
+
+    if (isDropdownOpen) {
+      addGoogleTranslateScript();
+      setTimeout(() => {
+        window.googleTranslateElementInit();
+      }, 500);
+    }
+  }, [isDropdownOpen]);
 
   return (
     <>
       {/* Top Navbar */}
-      <div className="flex justify-between items-center px-8 py-4 bg-black text-white text-2xl md:text-3xl flex-wrap space-y-4">
+      <div className="flex justify-between items-center px-8 py-4 bg-black text-white text-xl md:text-3xl flex-wrap space-y-4">
         <div className="flex items-center space-x-10 flex-wrap justify-center">
           {navItems.map((item, index) => (
             <div key={index} className="flex items-center space-x-5">
@@ -70,7 +89,7 @@ const Navbar = () => {
             <img src="logo.jpeg" alt="Slasa" className="h-24 w-24 rounded-full" />
           </div>
 
-          <div className="text-3xl md:text-4xl flex flex-wrap md:flex-nowrap space-x-10 md:space-x-12 justify-center">
+          <div className="text-2xl md:text-3xl flex flex-wrap md:flex-nowrap space-x-10 md:space-x-12 justify-center">
             <div className="font-bold px-5 md:px-6 cursor-pointer">Home</div>
             <div className="font-bold px-5 md:px-6 cursor-pointer">Shop</div>
             <div className="font-bold px-5 md:px-6 cursor-pointer">Services</div>
@@ -89,8 +108,8 @@ const Navbar = () => {
             />
           </div>
 
-          <div className="flex items-center space-x-6 md:space-x-12 font-bold text-2xl md:text-4xl">
-            <i className="ri-user-line text-3xl md:text-5xl"></i>
+          <div className="flex items-center space-x-6 md:space-x-12 font-bold text-2xl md:text-3xl">
+            <i className="ri-user-line text-2xl md:text-3xl"></i>
             <span>Sign Up</span>
             <span>or</span>
             <span>Sign In</span>
@@ -106,60 +125,50 @@ const Navbar = () => {
                 className="flex items-center space-x-2 px-4 py-3 bg-gray-100 rounded-lg cursor-pointer"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               >
+                <span className="text-2xl">{selectedCountry.flag}</span>
                 <i className="ri-global-line"></i>
                 <i className="ri-arrow-down-s-line"></i>
               </div>
 
-              {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-lg p-2 z-50">
-                  
-                  {/* Language Selection */}
-                  <div className="border-b px-4 py-2 text-gray-500 text-lg">Select Language</div>
-                  {languages.map((lang, index) => (
-                    <div
-                      key={index}
-                      className={`flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-gray-100 rounded-lg ${
-                        selectedLanguage === lang.label ? "font-bold" : ""
-                      }`}
-                      onClick={() => {
-                        setSelectedLanguage(lang.label);
-                        setIsDropdownOpen(false);
-                      }}
-                    >
-                      <span className="ml-3 text-2xl">{lang.label}</span>
-                      {selectedLanguage === lang.label && (
-                        <i className="ri-check-line text-green-600"></i>
-                      )}
-                    </div>
-                  ))}
+              {/* Dropdown Menu */}
+              <div 
+                className={`absolute right-0 mt-2 w-96 bg-white shadow-lg rounded-xl p-4 z-50 border border-gray-200 transition-all duration-300 ease-in-out transform ${
+                  isDropdownOpen ? "scale-100 opacity-100" : "scale-95 opacity-0 pointer-events-none"
+                }`}
+              >
+                {/* Google Translate */}
+                <div className="text-2xl font-semibold text-gray-700 mb-2">Select Language</div>
+                <div className="flex justify-center items-center">
+                <div className="p-4 bg-gray-100 rounded-lg shadow-md border border-gray-300 flex justify-center items-center">
+  <div id="google_translate_element" className="text-gray-700"></div>
+</div>
 
-                  {/* Country Selection */}
-                  <div className="border-b px-4 py-2 text-gray-500 text-lg mt-2">Select Country</div>
-                  {countries.map((country, index) => (
-                    <div
-                      key={index}
-                      className={`flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-gray-100 rounded-lg ${
-                        selectedCountry === country.name ? "font-bold" : ""
-                      }`}
-                      onClick={() => {
-                        setSelectedCountry(country.name);
-                        setIsDropdownOpen(false);
-                      }}
-                    >
-                      <span className="text-lg">{country.flag}</span>
-                      <span className="ml-3 flex-1 text-2xl">{country.name}</span>
-                      {selectedCountry === country.name && (
-                        <i className="ri-check-line text-green-600"></i>
-                      )}
-                    </div>
-                  ))}
                 </div>
-              )}
-            </div>
 
+                {/* Country Selection */}
+                <div className="mt-4">
+                  <div className="text-2xl font-semibold text-gray-700 mb-2">Select Country</div>
+                  <ul className="space-y-2">
+                    {countries.map((country, index) => (
+                      <li 
+                        key={index} 
+                        className="flex items-center space-x-3 p-2 hover:bg-gray-100 rounded-md cursor-pointer"
+                        onClick={() => {
+                          setSelectedCountry(country);
+                          setIsDropdownOpen(false);
+                        }}
+                      >
+                        <span className="text-2xl">{country.flag}</span>
+                        <span className="text-lg">{country.name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </div>    
     </>
   );
 };
